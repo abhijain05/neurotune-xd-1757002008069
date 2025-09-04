@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WebDynpro xmlns="http://www.sap.com/wd/webdynpro">
+  <View name="OrderOverviewView">
+    <Title>SAPUI5 App</Title>
+    <Content>
+      <!-- Search Section -->
+      <FlowLayout id="SearchLayout">
+        <InputField id="SearchInputField" value="{/SearchTerm}" placeholder="Search" width="250px" />
+        <Button id="GoButton" text="Go" onAction="onActionGo" />
+      </FlowLayout>
+
+      <!-- Filter Section Title -->
+      <TextView id="FilterTitle" text="Filter" design="Heading1" />
+
+      <!-- Status Filter -->
+      <FormContainer id="FilterContainer">
+        <FormElements>
+          <FormElement id="StatusFilterElement" labelFor="StatusDropDown">
+            <Label id="StatusLabel" text="Status" />
+            <DropDownByKey id="StatusDropDown"
+                           width="150px"
+                           selectedKey="{/FilterStatus}"
+                           onAction="onActionStatusSelect">
+              <Items>
+                <CollectionIterator id="StatusItemsIterator" dataSource="{/AvailableStatuses}">
+                  <DropDownByKeyItem key="{Key}" value="{Value}" />
+                </CollectionIterator>
+              </Items>
+            </DropDownByKey>
+          </FormElement>
+        </FormElements>
+      </FormContainer>
+
+      <!-- Table Section -->
+      <Table id="OrdersTable" dataSource="{/Orders}" visibleRowCount="4" width="auto">
+        <Columns>
+          <Column id="OrderIDColumn">
+            <TextView text="Order ID" design="Header" />
+            <TextView text="{OrderID}" />
+          </Column>
+          <Column id="ProductColumn">
+            <TextView text="Product" design="Header" />
+            <TextView text="{Product}" />
+          </Column>
+          <Column id="StatusColumn">
+            <TextView text="Status" design="Header" />
+            <TextView text="{Status}" />
+          </Column>
+          <Column id="AmountColumn">
+            <TextView text="Amount" design="Header" />
+            <TextView text="{Amount}" />
+          </Column>
+        </Columns>
+      </Table>
+    </Content>
+  </View>
+  <Controller name="OrderOverviewViewController">
+    <Context>
+      <Component id="ComponentController" />
+      <Node name="Orders" cardinality="0..n" selectionCardinality="0..1">
+        <Attribute name="OrderID" type="String" />
+        <Attribute name="Product" type="String" />
+        <Attribute name="Status" type="String" />
+        <Attribute name="Amount" type="String" />
+      </Node>
+      <Node name="AvailableStatuses" cardinality="0..n" selectionCardinality="0..1">
+        <Attribute name="Key" type="String" />
+        <Attribute name="Value" type="String" />
+      </Node>
+      <Attribute name="SearchTerm" type="String" />
+      <Attribute name="FilterStatus" type="String" />
+    </Context>
+    <Methods>
+      <Method name="onInit">
+        <Parameters />
+        <Implementation>
+          <![CDATA[
+            // Populate dropdown with available statuses
+            // The "Status" shown in the dropdown in the image is treated as a default placeholder/value.
+            wdContext.nodeAvailableStatuses().createElement().setKey("STATUS_PLACEHOLDER").setValue("Status");
+            wdContext.nodeAvailableStatuses().createElement().setKey("ALL").setValue("All");
+            wdContext.nodeAvailableStatuses().createElement().setKey("IN_PROCESS").setValue("In Process");
+            wdContext.nodeAvailableStatuses().createElement().setKey("SHIPPED").setValue("Shipped");
+            wdContext.nodeAvailableStatuses().createElement().setKey("DELIVERED").setValue("Delivered"); 
+            
+            // Set initial selected status to "STATUS_PLACEHOLDER" to match the image
+            wdContext.currentContextElement().setFilterStatus("STATUS_PLACEHOLDER"); 
+
+            // Populate table with initial data as shown in the image
+            wdContext.nodeOrders().createElement().setOrderID("050").setProduct("Lamp").setStatus("In Process").setAmount("€ 45,00");
+            wdContext.nodeOrders().createElement().setOrderID("081").setProduct("Phone").setStatus("Shipped").setAmount("€ 200,00");
+            wdContext.nodeOrders().createElement().setOrderID("109").setProduct("Tablet").setStatus("Shipped").setAmount("€ 300,00");
+            wdContext.nodeOrders().createElement().setOrderID("123").setProduct("Chair").setStatus("In Process").setAmount("€ 70,00");
+
+            // Initialize search term
+            wdContext.currentContextElement().setSearchTerm("");
+          ]]>
+        </Implementation>
+      </Method>
+      <Method name="onActionGo">
+        <Parameters />
+        <Implementation>
+          <![CDATA[
+            // This method would typically trigger a backend call or filter the existing table data
+            // based on wdContext.currentContextElement().getSearchTerm().
+            // For demonstration, a simple message is displayed.
+            String searchTerm = wdContext.currentContextElement().getSearchTerm();
+            wdComponentAPI.getMessageManager().reportMessage(IWDCMessageManager.TO_POPUP_AND_MESSAGE_AREA, "Search initiated for: " + (searchTerm != null && !searchTerm.isEmpty() ? searchTerm : "<empty>"), null, null, false, false, wdContext.currentContextElement());
+            // In a real application, you would implement the search logic here to modify wdContext.nodeOrders().
+          ]]>
+        </Implementation>
+      </Method>
+      <Method name="onActionStatusSelect">
+        <Parameters />
+        <Implementation>
+          <![CDATA[
+            // This method would filter the table data based on wdContext.currentContextElement().getFilterStatus().
+            // For demonstration, a simple message is displayed.
+            String selectedStatus = wdContext.currentContextElement().getFilterStatus();
+            wdComponentAPI.getMessageManager().reportMessage(IWDCMessageManager.TO_POPUP_AND_MESSAGE_AREA, "Filter applied for status: " + selectedStatus, null, null, false, false, wdContext.currentContextElement());
+            // In a real application, you would implement the filtering logic here to modify wdContext.nodeOrders()
+            // based on the selectedStatus. Special handling for "STATUS_PLACEHOLDER" or "ALL" might be needed.
+          ]]>
+        </Implementation>
+      </Method>
+    </Methods>
+  </Controller>
+</WebDynpro>
